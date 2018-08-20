@@ -91,27 +91,30 @@ for i = 1:numRows_desired
         r = outImg(row_idx, col_idx,1);
         g = outImg(row_idx, col_idx,2);
         b = outImg(row_idx, col_idx,3);
-%         outImg_actual(i,j,:) = [r g b];
-%         img_spreadsheet{i,j} = rgb2hex([r g b]);
+        outImg_actual(i,j,:) = [r g b];
+        img_spreadsheet{i,j} = rgb2hex([r g b]);
     end
 end
-outImg_gridded = outImg;
-outImg_gridded(floor(10*numRows_ratio):floor(10*numRows_ratio):end,:,:) = 0;       %# Change every tenth row to black
-outImg_gridded(:,floor(10*numCols_ratio):floor(10*numCols_ratio):end,:) = 0; 
+outImg_gridded = outImg_actual;
+outImg_gridded(10:10:end,:,:) = 0;       %# Change every tenth row to black
+outImg_gridded(:,10:10:end,:) = 0; 
 
 csv_out_filename = [inImgname, '_', int2str(noOfColors), '_pattern.csv'];
-cell2csv(csv_out_filename,img_spreadsheet);
+cell2csv(csv_out_filename, cellstr(img_spreadsheet));
 
-outFilename = [inImgname, '_', int2str(noOfColors), '_scaled', ext];
+outFilename = [inImgname, '_', int2str(noOfColors), '_scaled.bmp'];
 imwrite(uint8(outImg), outFilename);
 figure;
 imshow(uint8(outImg));
 
-griddedFileName = [inImgname, '_', int2str(noOfColors), '_gridded', ext];
+griddedFileName = [inImgname, '_', int2str(noOfColors), '_gridded.bmp'];
 imwrite(uint8(outImg_gridded), griddedFileName);
 
 paletteText_filename = [inImgname, '_', int2str(noOfColors), '_palette.csv'];
 cell2csv(paletteText_filename,cellstr(palette_hex));
+
+outImg_actual_filename = [inImgname, '_', int2str(noOfColors), '_actual.bmp'];
+imwrite(uint8(outImg_actual), outImg_actual_filename);
 
 new_directory_name = [inImgname, '_', int2str(noOfColors)];
 
@@ -121,3 +124,4 @@ status2 = movefile(outFilename, new_directory_name);
 status3 = movefile(csv_out_filename, new_directory_name);
 status4 = movefile(paletteText_filename, new_directory_name);
 status5 = movefile(griddedFileName, new_directory_name);
+status6 = movefile(outImg_actual_filename, new_directory_name);

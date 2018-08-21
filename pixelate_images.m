@@ -73,6 +73,7 @@ inputImg = double(inputImg);
 
 palette = round(C);
 palette_hex = rgb2hex(palette);
+palette_hex = cellstr(palette_hex);
 
 %Color Mapping
 idx = uint8(idx);
@@ -95,9 +96,15 @@ for i = 1:numRows_desired
         img_spreadsheet{i,j} = rgb2hex([r g b]);
     end
 end
-outImg_gridded = outImg_actual;
-outImg_gridded(10:10:end,:,:) = 0;       %# Change every tenth row to black
-outImg_gridded(:,10:10:end,:) = 0; 
+
+colorPercentage = zeros(noOfColors, 1);
+for i = 1:noOfColors
+    colorPercentage(i) = (nnz(strcmp(img_spreadsheet,palette_hex{i})) / (numRows_desired * numCols_desired)) * 100;
+    palette_hex{i,2} = colorPercentage(i);
+end
+labels = {'Color (hex code)', 'Percentage of pixels'};
+palette_hex = [labels;palette_hex];
+
 
 csv_out_filename = [inImgname, '_', int2str(noOfColors), '_pattern.csv'];
 cell2csv(csv_out_filename, cellstr(img_spreadsheet));
@@ -107,11 +114,9 @@ imwrite(uint8(outImg), outFilename);
 figure;
 imshow(uint8(outImg));
 
-griddedFileName = [inImgname, '_', int2str(noOfColors), '_gridded.bmp'];
-imwrite(uint8(outImg_gridded), griddedFileName);
 
 paletteText_filename = [inImgname, '_', int2str(noOfColors), '_palette.csv'];
-cell2csv(paletteText_filename,cellstr(palette_hex));
+cell2csv(paletteText_filename, palette_hex);
 
 outImg_actual_filename = [inImgname, '_', int2str(noOfColors), '_actual.bmp'];
 imwrite(uint8(outImg_actual), outImg_actual_filename);
@@ -119,9 +124,7 @@ imwrite(uint8(outImg_actual), outImg_actual_filename);
 new_directory_name = [inImgname, '_', int2str(noOfColors)];
 
 status1 = mkdir(new_directory_name);
-
 status2 = movefile(outFilename, new_directory_name);
 status3 = movefile(csv_out_filename, new_directory_name);
 status4 = movefile(paletteText_filename, new_directory_name);
-status5 = movefile(griddedFileName, new_directory_name);
-status6 = movefile(outImg_actual_filename, new_directory_name);
+status5 = movefile(outImg_actual_filename, new_directory_name);

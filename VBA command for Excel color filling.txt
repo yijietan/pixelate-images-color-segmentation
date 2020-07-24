@@ -1,0 +1,11 @@
+Sub ColorCellsByHex()
+  Dim rSelection As Range, rCell As Range, tHex As String
+  ActiveSheet.UsedRange.Select
+  If TypeName(Selection) = "Range" Then
+  Set rSelection = Selection
+    For Each rCell In rSelection
+      tHex = Mid(rCell.Text, 6, 2) & Mid(rCell.Text, 4, 2) & Mid(rCell.Text, 2, 2)
+      rCell.Interior.Color = WorksheetFunction.Hex2Dec(tHex)
+    Next
+  End If
+End Sub

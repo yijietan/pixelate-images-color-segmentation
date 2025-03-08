@@ -46,9 +46,9 @@ for i = 1:numRows_desired
         col_idx = floor((j-1)*numCols_ratio) + 1 : floor(j*numCols_ratio);
         
         
-        redMean = mean2(redChannel(row_idx,col_idx));
-        greenMean = mean2(greenChannel(row_idx,col_idx));
-        blueMean = mean2(blueChannel(row_idx,col_idx));
+        redMean = mean(redChannel(row_idx,col_idx),'all');
+        greenMean = mean(greenChannel(row_idx,col_idx),'all');
+        blueMean = mean(blueChannel(row_idx,col_idx),'all');
         
         img_pixelate(row_idx,col_idx,1) = redMean;
         
@@ -68,8 +68,8 @@ inputImg(:,2) = g(:);
 inputImg(:,3) = b(:);
 inputImg = double(inputImg);
 
-
-[idx, C] = kmeans(inputImg, noOfColors, 'EmptyAction', 'singleton');
+numIterations = 3;
+[~, C, idx] = kMeansClustering(inputImg, noOfColors, numIterations);
 
 palette = round(C);
 palette_hex = rgb2hex(palette);

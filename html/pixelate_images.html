@@ -1,0 +1,344 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>pixelate_images</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2025-03-08"><meta name="DC.source" content="pixelate_images.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput">clear <span class="string">all</span>; close <span class="string">all</span>; clc;
+
+[baseName, folder] = uigetfile({<span class="string">'*.jpg;*.png'</span>});
+file = fullfile(folder, baseName);
+[pathstr,inImgname,ext] = fileparts(file);
+img = imread(file);
+imshow(img);
+
+
+numRows = size(img,1);
+numCols = size(img,2);
+
+col2rol_ratio = numCols / numRows;
+
+ratio = numRows/ numCols;
+<span class="comment">% Separate to RGB channel</span>
+redChannel = img(:,:,1);
+greenChannel = img(:,:,2);
+blueChannel = img(:,:,3);
+
+prompt = {<span class="string">'Number of rows in pixels'</span>, <span class="string">'Number of colors'</span>};
+title = <span class="string">'User preferences'</span>;
+dims = [1 50; 1 50];
+definput = {<span class="string">'200'</span>, <span class="string">'20'</span>};
+answer = inputdlg(prompt,title,dims,definput);
+
+numRows_desired = str2num(answer{1});
+noOfColors = str2num(answer{2});
+numCols_desired = ceil(col2rol_ratio * numRows_desired);
+
+
+numRows_ratio = numRows / numRows_desired;
+numCols_ratio = numCols / numCols_desired;
+
+
+img_pixelate = zeros(round(numRows_desired * numRows_ratio), round(numCols_desired * numCols_ratio), 3, <span class="string">'uint8'</span>);
+img_spreadsheet = cell(numRows_desired, numCols_desired);
+
+
+<span class="keyword">for</span> i = 1:numRows_desired
+    <span class="keyword">for</span> j = 1:numCols_desired
+
+        row_idx = floor((i-1)*numRows_ratio) + 1 : floor(i*numRows_ratio);
+
+
+        col_idx = floor((j-1)*numCols_ratio) + 1 : floor(j*numCols_ratio);
+
+
+        redMean = mean(redChannel(row_idx,col_idx),<span class="string">'all'</span>);
+        greenMean = mean(greenChannel(row_idx,col_idx),<span class="string">'all'</span>);
+        blueMean = mean(blueChannel(row_idx,col_idx),<span class="string">'all'</span>);
+
+        img_pixelate(row_idx,col_idx,1) = redMean;
+
+        img_pixelate(row_idx,col_idx,2) = greenMean;
+
+        img_pixelate(row_idx,col_idx,3) = blueMean;
+
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+r = img_pixelate(:,:,1);
+g = img_pixelate(:,:,2);
+b = img_pixelate(:,:,3);
+inputImg = zeros((numRows * numCols), 3);
+inputImg(:,1) = r(:);
+inputImg(:,2) = g(:);
+inputImg(:,3) = b(:);
+inputImg = double(inputImg);
+
+numIterations = 3;
+[~, C, idx] = kMeansClustering(inputImg, noOfColors, numIterations);
+
+palette = round(C);
+palette_hex = rgb2hex(palette);
+palette_hex = cellstr(palette_hex);
+
+<span class="comment">%Color Mapping</span>
+idx = uint8(idx);
+outImg = zeros(numRows,numCols,3);
+temp = reshape(idx, [numRows numCols]);
+<span class="keyword">for</span> i = 1 : numRows
+    <span class="keyword">for</span> j = 1 : numCols
+        outImg(i,j,:) = palette(temp(i,j),:);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="keyword">for</span> i = 1:numRows_desired
+    <span class="keyword">for</span> j = 1:numCols_desired
+        row_idx = floor((i-1)*numRows_ratio) + 1;
+        col_idx = floor((j-1)*numCols_ratio) + 1;
+        r = outImg(row_idx, col_idx,1);
+        g = outImg(row_idx, col_idx,2);
+        b = outImg(row_idx, col_idx,3);
+        outImg_actual(i,j,:) = [r g b];
+        img_spreadsheet{i,j} = rgb2hex([r g b]);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+colorPercentage = zeros(noOfColors, 1);
+<span class="keyword">for</span> i = 1:noOfColors
+    colorPercentage(i) = (nnz(strcmp(img_spreadsheet,palette_hex{i})) / (numRows_desired * numCols_desired)) * 100;
+    palette_hex{i,2} = colorPercentage(i);
+<span class="keyword">end</span>
+labels = {<span class="string">'Color (hex code)'</span>, <span class="string">'Percentage of pixels'</span>};
+palette_hex = [labels;palette_hex];
+
+
+csv_out_filename = [inImgname, <span class="string">'_'</span>, int2str(noOfColors), <span class="string">'_pattern.csv'</span>];
+cell2csv(csv_out_filename, cellstr(img_spreadsheet));
+
+outFilename = [inImgname, <span class="string">'_'</span>, int2str(noOfColors), <span class="string">'_scaled.bmp'</span>];
+imwrite(uint8(outImg), outFilename);
+figure;
+imshow(uint8(outImg));
+
+
+paletteText_filename = [inImgname, <span class="string">'_'</span>, int2str(noOfColors), <span class="string">'_palette.csv'</span>];
+cell2csv(paletteText_filename, palette_hex);
+
+outImg_actual_filename = [inImgname, <span class="string">'_'</span>, int2str(noOfColors), <span class="string">'_actual.bmp'</span>];
+imwrite(uint8(outImg_actual), outImg_actual_filename);
+
+new_directory_name = [inImgname, <span class="string">'_'</span>, int2str(noOfColors)];
+
+status1 = mkdir(new_directory_name);
+status2 = movefile(outFilename, new_directory_name);
+status3 = movefile(csv_out_filename, new_directory_name);
+status4 = movefile(paletteText_filename, new_directory_name);
+status5 = movefile(outImg_actual_filename, new_directory_name);
+</pre><pre class="codeoutput error">Error using dir
+Invalid path. The path must not contain a null character.
+
+Error in imread&gt;get_full_filename (line 561)
+    if ~isempty(dir(filename))
+
+Error in imread (line 377)
+    fullname = get_full_filename(filename);
+
+Error in pixelate_images (line 6)
+img = imread(file);
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+clear all; close all; clc;
+
+[baseName, folder] = uigetfile({'*.jpg;*.png'});
+file = fullfile(folder, baseName);
+[pathstr,inImgname,ext] = fileparts(file);
+img = imread(file);
+imshow(img);
+
+
+numRows = size(img,1);
+numCols = size(img,2);
+
+col2rol_ratio = numCols / numRows;
+
+ratio = numRows/ numCols;
+% Separate to RGB channel
+redChannel = img(:,:,1);
+greenChannel = img(:,:,2);
+blueChannel = img(:,:,3);
+
+prompt = {'Number of rows in pixels', 'Number of colors'};
+title = 'User preferences';
+dims = [1 50; 1 50];
+definput = {'200', '20'};
+answer = inputdlg(prompt,title,dims,definput);
+
+numRows_desired = str2num(answer{1});
+noOfColors = str2num(answer{2});
+numCols_desired = ceil(col2rol_ratio * numRows_desired);
+
+
+numRows_ratio = numRows / numRows_desired;
+numCols_ratio = numCols / numCols_desired;
+
+
+img_pixelate = zeros(round(numRows_desired * numRows_ratio), round(numCols_desired * numCols_ratio), 3, 'uint8');
+img_spreadsheet = cell(numRows_desired, numCols_desired);
+
+
+for i = 1:numRows_desired
+    for j = 1:numCols_desired
+        
+        row_idx = floor((i-1)*numRows_ratio) + 1 : floor(i*numRows_ratio);
+        
+        
+        col_idx = floor((j-1)*numCols_ratio) + 1 : floor(j*numCols_ratio);
+        
+        
+        redMean = mean(redChannel(row_idx,col_idx),'all');
+        greenMean = mean(greenChannel(row_idx,col_idx),'all');
+        blueMean = mean(blueChannel(row_idx,col_idx),'all');
+        
+        img_pixelate(row_idx,col_idx,1) = redMean;
+        
+        img_pixelate(row_idx,col_idx,2) = greenMean;
+        
+        img_pixelate(row_idx,col_idx,3) = blueMean;
+        
+    end
+end
+
+r = img_pixelate(:,:,1);
+g = img_pixelate(:,:,2);
+b = img_pixelate(:,:,3);
+inputImg = zeros((numRows * numCols), 3);
+inputImg(:,1) = r(:);
+inputImg(:,2) = g(:);
+inputImg(:,3) = b(:);
+inputImg = double(inputImg);
+
+numIterations = 3;
+[~, C, idx] = kMeansClustering(inputImg, noOfColors, numIterations);
+
+palette = round(C);
+palette_hex = rgb2hex(palette);
+palette_hex = cellstr(palette_hex);
+
+%Color Mapping
+idx = uint8(idx);
+outImg = zeros(numRows,numCols,3);
+temp = reshape(idx, [numRows numCols]);
+for i = 1 : numRows
+    for j = 1 : numCols
+        outImg(i,j,:) = palette(temp(i,j),:);
+    end
+end
+
+for i = 1:numRows_desired
+    for j = 1:numCols_desired
+        row_idx = floor((i-1)*numRows_ratio) + 1;
+        col_idx = floor((j-1)*numCols_ratio) + 1;
+        r = outImg(row_idx, col_idx,1);
+        g = outImg(row_idx, col_idx,2);
+        b = outImg(row_idx, col_idx,3);
+        outImg_actual(i,j,:) = [r g b];
+        img_spreadsheet{i,j} = rgb2hex([r g b]);
+    end
+end
+
+colorPercentage = zeros(noOfColors, 1);
+for i = 1:noOfColors
+    colorPercentage(i) = (nnz(strcmp(img_spreadsheet,palette_hex{i})) / (numRows_desired * numCols_desired)) * 100;
+    palette_hex{i,2} = colorPercentage(i);
+end
+labels = {'Color (hex code)', 'Percentage of pixels'};
+palette_hex = [labels;palette_hex];
+
+
+csv_out_filename = [inImgname, '_', int2str(noOfColors), '_pattern.csv'];
+cell2csv(csv_out_filename, cellstr(img_spreadsheet));
+
+outFilename = [inImgname, '_', int2str(noOfColors), '_scaled.bmp'];
+imwrite(uint8(outImg), outFilename);
+figure;
+imshow(uint8(outImg));
+
+
+paletteText_filename = [inImgname, '_', int2str(noOfColors), '_palette.csv'];
+cell2csv(paletteText_filename, palette_hex);
+
+outImg_actual_filename = [inImgname, '_', int2str(noOfColors), '_actual.bmp'];
+imwrite(uint8(outImg_actual), outImg_actual_filename);
+
+new_directory_name = [inImgname, '_', int2str(noOfColors)];
+
+status1 = mkdir(new_directory_name);
+status2 = movefile(outFilename, new_directory_name);
+status3 = movefile(csv_out_filename, new_directory_name);
+status4 = movefile(paletteText_filename, new_directory_name);
+status5 = movefile(outImg_actual_filename, new_directory_name);
+##### SOURCE END #####
+--></body></html>
